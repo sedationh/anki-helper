@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addNote } from "../../services/ankiService";
 import "./App.css";
 
@@ -6,6 +6,48 @@ function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  useEffect(() => {
+    const getClipboardData = async () => {
+      // 首先尝试使用 execCommand
+      const textarea = document.createElement("textarea");
+      document.body.appendChild(textarea);
+      textarea.focus();
+      const successful = document.execCommand("paste");
+      const text = textarea.value;
+      document.body.removeChild(textarea);
+
+      if (successful && text) {
+        try {
+          JSON.parse(text);
+          setJsonInput(text);
+        } catch (error) {
+          setStatus("剪贴板内容不是有效的 JSON 格式，请检查格式");
+        }
+        return;
+      }
+
+      // 如果 execCommand 失败，尝试使用 Clipboard API
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        if (clipboardText) {
+          try {
+            JSON.parse(clipboardText);
+            setJsonInput(clipboardText);
+          } catch (error) {
+            setStatus("剪贴板内容不是有效的 JSON 格式，请检查格式");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to read clipboard:", error);
+        setStatus(
+          "无法读取剪贴板数据，请点击输入框并按 Ctrl+V / Command+V 粘贴"
+        );
+      }
+    };
+
+    getClipboardData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
