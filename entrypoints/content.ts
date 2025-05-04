@@ -3,7 +3,7 @@ import nlp from "compromise";
 // Function to show toast notification
 function showToast(message: string) {
   // Create toast element
-  const toast = document.createElement('div');
+  const toast = document.createElement("div");
   toast.style.cssText = `
     position: fixed;
     top: 20px;
@@ -17,13 +17,13 @@ function showToast(message: string) {
     transition: opacity 0.3s ease-in-out;
   `;
   toast.textContent = message;
-  
+
   // Add to document
   document.body.appendChild(toast);
-  
+
   // Remove after 2 seconds
   setTimeout(() => {
-    toast.style.opacity = '0';
+    toast.style.opacity = "0";
     setTimeout(() => {
       document.body.removeChild(toast);
     }, 300);
@@ -41,27 +41,31 @@ export default defineContentScript({
         let combinedText = "";
 
         // Process each highlight separately
-        document.querySelectorAll("web-highlight,nrmark").forEach((highlight) => {
-          const highlightText = highlight.textContent?.trim() || "";
+        document
+          .querySelectorAll("web-highlight,nrmark")
+          .forEach((highlight) => {
+            const highlightText = highlight.textContent?.trim() || "";
 
-          // Find the container that includes the highlight
-          const container = highlight.closest("p, div, h1, h2, h3, h4, h5, h6");
-          if (!container) return;
+            // Find the container that includes the highlight
+            const container = highlight.closest(
+              "p, div, h1, h2, h3, h4, h5, h6"
+            );
+            if (!container) return;
 
-          // Get the full context and split into sentences
-          const fullContext = container.textContent?.trim() || "";
-          const doc = nlp(fullContext);
+            // Get the full context and split into sentences
+            const fullContext = container.textContent?.trim() || "";
+            const doc = nlp(fullContext);
 
-          // Get all sentences that contain the highlight text
-          const sentences = doc
-            .sentences()
-            .filter((s) => s.text().includes(highlightText))
-            .out("array") as string[];
+            // Get all sentences that contain the highlight text
+            const sentences = doc
+              .sentences()
+              .filter((s) => s.text().includes(highlightText))
+              .out("array") as string[];
 
-          const context = sentences.join(" ");
+            const context = sentences.join(" ");
 
-          combinedText += `highlight:\n${highlightText}\ncontext:\n${context}\n---\n`;
-        });
+            combinedText += `highlight:\n${highlightText}\ncontext:\n${context}\n---\n`;
+          });
 
         const prompt = `You are a helpful assistant that explains English vocabulary.
 Please explain the highlighted words/phrases from the text below:
@@ -69,7 +73,7 @@ Please explain the highlighted words/phrases from the text below:
 - Give 2-3 example sentences for each highlighted word/phrase
 
 ${combinedText}
-link: ${window.location.href}
+link: ${window.location.href.length > 50 ? "" : window.location.href}
 
 Please return the key points in a JSON format.
 The JSON format should be like this:

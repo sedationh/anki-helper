@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { addNote } from "../../services";
+import { browser } from "wxt/browser";
 import "./App.css";
 
 function App() {
@@ -64,7 +65,23 @@ function App() {
       let failCount = 0;
 
       for (const item of data) {
-        const { highlight, context, explanation, examples, link } = item;
+        const { highlight, context, explanation, examples, _link } = item;
+        // 如果 link 为空，则用当前 active tab url 代替
+        let link = _link;
+        if (!link) {
+          try {
+            // Using browser.tabs API which is compatible with both Chrome and Firefox
+            const [activeTab] = await browser.tabs.query({
+              active: true,
+              currentWindow: true,
+            });
+            link = activeTab.url || "";
+          } catch (error) {
+            console.error("Failed to get active tab URL:", error);
+            link = "";
+          }
+        }
+
         if (!highlight || !context || !explanation || !examples || !link) {
           failCount++;
           continue;

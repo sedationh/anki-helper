@@ -7,7 +7,7 @@ export default defineConfig({
     description:
       "A browser extension to help create Anki cards from web content",
     version: "1.0.0",
-    permissions: ["clipboardRead", "storage", "contextMenus"],
+    permissions: ["clipboardRead", "storage", "contextMenus", "activeTab"],
     icons: {
       "16": "icons/16.png",
       "32": "icons/32.png",
