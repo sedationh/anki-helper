@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { addNote } from "../../services/ankiService";
+import { addNote } from "../../services";
 import "./App.css";
 
 function App() {
@@ -137,7 +137,7 @@ function App() {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className={`submit-button ${isProcessing ? "processing" : ""}`}
+                className="submit-button"
               >
                 {isProcessing ? "处理中..." : "添加到 Anki"}
               </button>

@@ -1,14 +1,22 @@
-import { AnkiNote } from '../types/anki';
+import { AnkiNote, AnkiSettings } from "@/types/anki";
+import { ankiSettings } from "@/storage";
+
+const SERVER_URL = "http://localhost:8765";
+const API_VERSION = 6;
+
+async function getAnkiSettings(): Promise<AnkiSettings> {
+  return await ankiSettings.getValue();
+}
 
 export async function invokeAnkiConnect(action: string, params = {}) {
-  const response = await fetch("http://localhost:8765", {
+  const response = await fetch(SERVER_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       action,
-      version: 6,
+      version: API_VERSION,
       params,
     }),
   });
@@ -21,8 +29,9 @@ export async function addNote(note: AnkiNote) {
     `<b>$&</b>`
   );
 
+  const settings = await getAnkiSettings();
   const ankiNote = {
-    deckName: "Default",
+    deckName: settings.deckName,
     modelName: "问题模板",
     fields: {
       问题: boldContext,
@@ -44,4 +53,4 @@ export async function addNote(note: AnkiNote) {
     console.error(`Error adding note:`, error);
     return { success: false, error };
   }
-} 
+}

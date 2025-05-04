@@ -4,4 +4,8 @@ export interface AnkiNote {
   explanation: string;
   examples: string[];
   link: string;
-} 
+}
+
+export interface AnkiSettings {
+  deckName: string;
+}

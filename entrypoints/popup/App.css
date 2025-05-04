@@ -37,7 +37,6 @@
 }
 
 .json-input {
-
     flex: 1;
     font-family: monospace;
     font-size: 13px;
@@ -46,6 +45,7 @@
     background: white;
     border: 1px solid #dadce0;
     border-radius: 4px;
+    padding: 8px;
     resize: none;
 }
 
@@ -56,6 +56,7 @@
 }
 
 .button-container {
+    padding: 0 16px 16px;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -104,7 +105,7 @@
     background: #174ea6;
 }
 
-.submit-button.processing {
+.submit-button:disabled {
     background: #dadce0;
     color: #5f6368;
     cursor: not-allowed;
