@@ -41,7 +41,7 @@ export default defineContentScript({
         let combinedText = "";
 
         // Process each highlight separately
-        document.querySelectorAll("web-highlight").forEach((highlight) => {
+        document.querySelectorAll("web-highlight,nrmark").forEach((highlight) => {
           const highlightText = highlight.textContent?.trim() || "";
 
           // Find the container that includes the highlight
