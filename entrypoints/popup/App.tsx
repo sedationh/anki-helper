@@ -65,7 +65,7 @@ function App() {
       let failCount = 0;
 
       for (const item of data) {
-        const { highlight, context, explanation, examples, _link } = item;
+        const { highlight, context, explanation, examples, _link, pronunciation } = item;
         // 如果 link 为空，则用当前 active tab url 代替
         let link = _link;
         if (!link) {
@@ -82,7 +82,7 @@ function App() {
           }
         }
 
-        if (!highlight || !context || !explanation || !examples || !link) {
+        if (!highlight || !context || !explanation || !examples || !link || !pronunciation) {
           failCount++;
           continue;
         }
@@ -91,6 +91,7 @@ function App() {
           context,
           explanation,
           examples: Array.isArray(examples) ? examples : [examples],
+          pronunciation,
           link,
         });
         if (result.success) {
@@ -130,6 +131,7 @@ function App() {
     "context": "这是一个示例上下文",
     "explanation": "这是解释",
     "examples": ["示例1", "示例2"],
+    "pronunciation": "美 /ˌpɪktʃə'resk/",
     "link": "https://example.com"
   }
 ]`}

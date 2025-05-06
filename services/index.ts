@@ -35,7 +35,7 @@ export async function addNote(note: AnkiNote) {
     modelName: "问题模板",
     fields: {
       问题: boldContext,
-      答案: `${note.explanation}<br>${note.examples
+      答案: `${note.pronunciation}<br>${note.explanation}<br>${note.examples
         .map((example) => `- ${example}`)
         .join("<br>")}`,
       相关知识: `<a href="${note.link}">${note.link}</a>`,

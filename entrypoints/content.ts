@@ -83,6 +83,7 @@ The JSON format should be like this:
     "context": "context text",
     "explanation": "explanation text",
     "examples": ["example 1", "example 2"],
+    "pronunciation": "美 /ˌpɪktʃə'resk/",
     "link": "link text"
   }
 ]
@@ -92,7 +93,6 @@ The JSON format should be like this:
           "%c Anki Helper [ prompt ]-37",
           "font-size:13px; background:pink; color:#bf2c9f;"
         );
-        console.log(prompt);
 
         // Copy to clipboard
         navigator.clipboard

@@ -3,6 +3,7 @@ export interface AnkiNote {
   context: string;
   explanation: string;
   examples: string[];
+  pronunciation: string;
   link: string;
 }
 
