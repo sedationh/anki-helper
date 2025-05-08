@@ -73,7 +73,7 @@ Please explain the highlighted words/phrases from the text below:
 - Give 2-3 example sentences for each highlighted word/phrase
 
 ${combinedText}
-link: ${window.location.href.length > 50 ? "" : window.location.href}
+link: ${window.location.href.length > 75 ? "" : window.location.href}
 
 Please return the key points in a JSON format.
 The JSON format should be like this:
