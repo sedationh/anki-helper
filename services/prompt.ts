@@ -39,6 +39,7 @@ export function generatePrompt(
 Please explain the highlighted words/phrases from the text below:
 - Provide simple definitions in English at this context
 - Give 2-3 example sentences for each highlighted word/phrase
+- If the context is not complete or wrong, fix it. if the context is to long, adjust it to a reasonable length
 
 ${combinedText}
 link: ${currentUrl.length > 75 ? "" : currentUrl}
