@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { addNote, streamToOpenRouter } from "@/services";
 import { browser } from "wxt/browser";
 import "./App.css";
-import { defaultSettingsStorage } from "@/storage";
+import { defaultSettings, defaultSettingsStorage } from "@/storage";
 
 function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [streamedText, setStreamedText] = useState<string>("");
-  const [deckName, setDeckName] = useState<string>("Default");
+  const [deckName, setDeckName] = useState<string>(defaultSettings.deckName);
 
   useEffect(() => {
     // Load settings
@@ -175,30 +175,30 @@ function App() {
 
       // 使用流式API发送到AI服务获取JSON
       setStatus("AI生成中...");
-      
+
       // 创建消息对象
       const messages = [
-        { 
-          role: "user" as const, 
+        {
+          role: "user" as const,
           content: [{ type: "text" as const, text: prompt }],
         },
       ];
-      
+
       // 使用流式API
       const stream = await streamToOpenRouter(messages);
-      
+
       // 创建临时变量保存完整响应
       let fullResponse = "";
-      
+
       // 获取流的文本流
       const textStream = stream.textStream;
-      
+
       // 处理流式响应
       for await (const chunk of textStream) {
         fullResponse += chunk;
         setStreamedText(fullResponse);
       }
-      
+
       // 流式响应结束后，尝试解析JSON
       const jsonMatch = fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
       if (jsonMatch) {
