@@ -1,6 +1,6 @@
-import { generateText, streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { defaultSettingsStorage } from "@/storage";
+import { generateText, streamText } from "ai";
 
 export interface OpenRouterMessage {
   role: "user" | "assistant" | "system";

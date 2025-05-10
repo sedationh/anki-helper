@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { addNote } from "@/services";
+import { addNote, streamToOpenRouter } from "@/services";
 import { browser } from "wxt/browser";
 import "./App.css";
 
@@ -7,6 +7,7 @@ function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [streamedText, setStreamedText] = useState<string>("");
 
   useEffect(() => {
     const getClipboardData = async () => {
@@ -65,7 +66,14 @@ function App() {
       let failCount = 0;
 
       for (const item of data) {
-        const { highlight, context, explanation, examples, _link, pronunciation } = item;
+        const {
+          highlight,
+          context,
+          explanation,
+          examples,
+          _link,
+          pronunciation,
+        } = item;
         // 如果 link 为空，则用当前 active tab url 代替
         let link = _link;
         if (!link) {
@@ -82,7 +90,14 @@ function App() {
           }
         }
 
-        if (!highlight || !context || !explanation || !examples || !link || !pronunciation) {
+        if (
+          !highlight ||
+          !context ||
+          !explanation ||
+          !examples ||
+          !link ||
+          !pronunciation
+        ) {
           failCount++;
           continue;
         }
@@ -112,6 +127,92 @@ function App() {
     }
   };
 
+  const handleGenerateFromHighlights = async () => {
+    setIsProcessing(true);
+    setStatus("获取高亮文本中...");
+    setStreamedText("");
+
+    try {
+      // 获取当前活跃标签页
+      const [activeTab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+
+      if (!activeTab?.id) {
+        setStatus("无法获取当前标签页");
+        setIsProcessing(false);
+        return;
+      }
+
+      // 向内容脚本发送消息请求高亮文本和生成的prompt
+      const data = await browser.tabs
+        .sendMessage(activeTab.id, {
+          action: "getHighlights",
+        })
+        .catch(() => {
+          return {
+            success: false,
+            error: "获取高亮文本失败，请确认页面已加载完成",
+          };
+        });
+
+      if (!data || !data.success) {
+        setStatus(data?.error || "获取高亮文本失败，请确认页面已加载完成");
+        setIsProcessing(false);
+        return;
+      }
+
+      // 直接使用从内容脚本获取的prompt
+      const { prompt } = data;
+
+      // 使用流式API发送到AI服务获取JSON
+      setStatus("AI生成中...");
+      
+      // 创建消息对象
+      const messages = [
+        { 
+          role: "user" as const, 
+          content: [{ type: "text" as const, text: prompt }],
+        },
+      ];
+      
+      // 使用流式API
+      const stream = await streamToOpenRouter(messages);
+      
+      // 创建临时变量保存完整响应
+      let fullResponse = "";
+      
+      // 获取流的文本流
+      const textStream = stream.textStream;
+      
+      // 处理流式响应
+      for await (const chunk of textStream) {
+        fullResponse += chunk;
+        setStreamedText(fullResponse);
+      }
+      
+      // 流式响应结束后，尝试解析JSON
+      const jsonMatch = fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      if (jsonMatch) {
+        const jsonText = jsonMatch[0];
+        // 验证是否是有效JSON
+        JSON.parse(jsonText);
+        setJsonInput(jsonText);
+        setStreamedText("");
+        setStatus("AI生成成功");
+      } else {
+        setStatus("AI返回的结果不包含有效JSON");
+      }
+    } catch (error) {
+      console.error("Error generating from highlights:", error);
+      setStatus("生成过程中出错，请检查API配置或重试");
+      setStreamedText("");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="container">
       <div className="app">
@@ -122,7 +223,7 @@ function App() {
         <main className="main">
           <form onSubmit={handleSubmit} className="form">
             <textarea
-              value={jsonInput}
+              value={streamedText || jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
               className="json-input"
               placeholder={`[
@@ -142,7 +243,7 @@ function App() {
               {status && (
                 <div
                   className={`status-message ${
-                    status.includes("错误")
+                    status.includes("错误") || status.includes("失败")
                       ? "error"
                       : status.includes("成功")
                       ? "success"
@@ -153,13 +254,24 @@ function App() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={isProcessing}
-                className="submit-button"
-              >
-                {isProcessing ? "处理中..." : "添加到 Anki"}
-              </button>
+              <div className="buttons">
+                <button
+                  type="button"
+                  onClick={handleGenerateFromHighlights}
+                  disabled={isProcessing}
+                  className="ai-button"
+                >
+                  {isProcessing ? "生成中..." : "从高亮文本生成"}
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isProcessing || streamedText !== ""}
+                  className="submit-button"
+                >
+                  {isProcessing ? "处理中..." : "添加到 Anki"}
+                </button>
+              </div>
             </div>
           </form>
         </main>

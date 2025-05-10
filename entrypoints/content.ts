@@ -1,4 +1,5 @@
 import { generatePrompt } from "@/services";
+import { browser } from "wxt/browser";
 
 // Function to show toast notification
 function showToast(message: string) {
@@ -30,9 +31,33 @@ function showToast(message: string) {
   }, 2000);
 }
 
+// 获取页面中的高亮文本并生成prompt
+function getHighlightedText() {
+  const highlights = document.querySelectorAll("web-highlight,nrmark");
+  if (highlights.length === 0) {
+    return { success: false, error: "未找到高亮文本" };
+  }
+  
+  // 直接生成prompt
+  const prompt = generatePrompt(highlights, window.location.href);
+  
+  return { 
+    success: true, 
+    prompt
+  };
+}
+
 export default defineContentScript({
   matches: ["<all_urls>"],
   main() {
+    // 监听来自弹出窗口的消息
+    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === "getHighlights") {
+        sendResponse(getHighlightedText());
+        return true; // 保持异步响应通道开放
+      }
+    });
+    
     // Listen for keyboard shortcut
     document.addEventListener("keydown", (event) => {
       if (event.altKey && event.shiftKey && event.code === "KeyS") {
