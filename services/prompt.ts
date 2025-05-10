@@ -17,7 +17,7 @@ export function generatePrompt(
     const highlightText = highlight.textContent?.trim() || "";
 
     // Find the container that includes the highlight
-    const container = highlight.closest("p, div, h1, h2, h3, h4, h5, h6");
+    const container = highlight.closest("p, div, h1, h2, h3, h4, h5, h6, pre, body");
     if (!container) return;
 
     // Get the full context and split into sentences
