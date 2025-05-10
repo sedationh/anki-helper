@@ -4,12 +4,25 @@ import { browser } from "wxt/browser";
 import "./App.css";
 import { defaultSettings, defaultSettingsStorage } from "@/storage";
 
+// 定义状态类型
+type StatusType = "error" | "success" | "info" | "loading" | "idle";
+
+interface StatusState {
+  type: StatusType;
+  message: string;
+}
+
 function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<StatusState>({ type: "idle", message: "" });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [streamedText, setStreamedText] = useState<string>("");
   const [deckName, setDeckName] = useState<string>(defaultSettings.deckName);
+
+  // 辅助函数，方便设置状态
+  const updateStatus = (message: string, type: StatusType) => {
+    setStatus({ type, message });
+  };
 
   useEffect(() => {
     // Load settings
@@ -31,7 +44,7 @@ function App() {
           JSON.parse(text);
           setJsonInput(text);
         } catch (error) {
-          setStatus("剪贴板内容不是有效的 JSON 格式，请检查格式");
+          updateStatus("剪贴板内容不是有效的 JSON 格式，请检查格式", "error");
         }
         return;
       }
@@ -44,13 +57,14 @@ function App() {
             JSON.parse(clipboardText);
             setJsonInput(clipboardText);
           } catch (error) {
-            setStatus("剪贴板内容不是有效的 JSON 格式，请检查格式");
+            updateStatus("剪贴板内容不是有效的 JSON 格式，请检查格式", "error");
           }
         }
       } catch (error) {
         console.error("Failed to read clipboard:", error);
-        setStatus(
-          "无法读取剪贴板数据，请点击输入框并按 Ctrl+V / Command+V 粘贴"
+        updateStatus(
+          "无法读取剪贴板数据，请点击输入框并按 Ctrl+V / Command+V 粘贴",
+          "error"
         );
       }
     };
@@ -64,11 +78,12 @@ function App() {
     try {
       const data = JSON.parse(jsonInput);
       if (!Array.isArray(data)) {
-        setStatus("输入必须是卡片数据数组");
+        updateStatus("输入必须是卡片数据数组", "error");
+        setIsProcessing(false);
         return;
       }
 
-      setStatus("添加中...");
+      updateStatus("添加中...", "loading");
       let successCount = 0;
       let failCount = 0;
 
@@ -123,12 +138,13 @@ function App() {
         }
       }
 
-      setStatus(`添加完成：成功 ${successCount} 张，失败 ${failCount} 张`);
+      const statusType = failCount > 0 ? (successCount > 0 ? "info" : "error") : "success";
+      updateStatus(`添加完成：成功 ${successCount} 张，失败 ${failCount} 张`, statusType);
       if (successCount > 0) {
         setJsonInput("");
       }
     } catch (error) {
-      setStatus("JSON 格式错误，请检查输入");
+      updateStatus("JSON 格式错误，请检查输入", "error");
     } finally {
       setIsProcessing(false);
     }
@@ -136,7 +152,7 @@ function App() {
 
   const handleGenerateFromHighlights = async () => {
     setIsProcessing(true);
-    setStatus("获取高亮文本中...");
+    updateStatus("获取高亮文本中...", "loading");
     setStreamedText("");
 
     try {
@@ -147,7 +163,7 @@ function App() {
       });
 
       if (!activeTab?.id) {
-        setStatus("无法获取当前标签页");
+        updateStatus("无法获取当前标签页", "error");
         setIsProcessing(false);
         return;
       }
@@ -165,7 +181,7 @@ function App() {
         });
 
       if (!data || !data.success) {
-        setStatus(data?.error || "获取高亮文本失败，请确认页面已加载完成");
+        updateStatus(data?.error || "获取高亮文本失败，请确认页面已加载完成", "error");
         setIsProcessing(false);
         return;
       }
@@ -174,7 +190,7 @@ function App() {
       const { prompt } = data;
 
       // 使用流式API发送到AI服务获取JSON
-      setStatus("AI生成中...");
+      updateStatus("AI生成中...", "loading");
 
       // 创建消息对象
       const messages = [
@@ -207,13 +223,13 @@ function App() {
         JSON.parse(jsonText);
         setJsonInput(jsonText);
         setStreamedText("");
-        setStatus("AI生成成功");
+        updateStatus("AI生成成功", "success");
       } else {
-        setStatus("AI返回的结果不包含有效JSON");
+        updateStatus("AI返回的结果不包含有效JSON", "error");
       }
     } catch (error) {
       console.error("Error generating from highlights:", error);
-      setStatus("生成过程中出错，请检查API配置或重试");
+      updateStatus("生成过程中出错，请检查API配置或重试", "error");
       setStreamedText("");
     } finally {
       setIsProcessing(false);
@@ -247,17 +263,9 @@ function App() {
             />
 
             <div className="button-container">
-              {status && (
-                <div
-                  className={`status-message ${
-                    status.includes("错误") || status.includes("失败")
-                      ? "error"
-                      : status.includes("成功")
-                      ? "success"
-                      : "info"
-                  }`}
-                >
-                  {status}
+              {status.message && (
+                <div className={`status-message ${status.type}`}>
+                  {status.message}
                 </div>
               )}
 
@@ -268,7 +276,9 @@ function App() {
                   disabled={isProcessing}
                   className="ai-button"
                 >
-                  {isProcessing ? "生成中..." : "从高亮文本生成"}
+                  {isProcessing && status.type === "loading" && status.message === "AI生成中..." 
+                    ? "AI生成中..." 
+                    : "从高亮文本生成"}
                 </button>
 
                 <button
@@ -276,7 +286,9 @@ function App() {
                   disabled={isProcessing || streamedText !== ""}
                   className="submit-button"
                 >
-                  {isProcessing ? "处理中..." : `添加到 ${deckName}`}
+                  {isProcessing && status.type === "loading" && status.message === "添加中..." 
+                    ? "处理中..." 
+                    : `添加到 ${deckName}`}
                 </button>
               </div>
             </div>
