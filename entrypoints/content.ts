@@ -1,4 +1,4 @@
-import nlp from "compromise";
+import { generatePrompt } from "@/services";
 
 // Function to show toast notification
 function showToast(message: string) {
@@ -38,61 +38,17 @@ export default defineContentScript({
       if (event.altKey && event.shiftKey && event.code === "KeyS") {
         event.preventDefault();
 
-        let combinedText = "";
-
-        // Process each highlight separately
-        document
-          .querySelectorAll("web-highlight,nrmark")
-          .forEach((highlight) => {
-            const highlightText = highlight.textContent?.trim() || "";
-
-            // Find the container that includes the highlight
-            const container = highlight.closest(
-              "p, div, h1, h2, h3, h4, h5, h6"
-            );
-            if (!container) return;
-
-            // Get the full context and split into sentences
-            const fullContext = container.textContent?.trim() || "";
-            const doc = nlp(fullContext);
-
-            // Get all sentences that contain the highlight text
-            const sentences = doc
-              .sentences()
-              .filter((s) => s.text().includes(highlightText))
-              .out("array") as string[];
-
-            const context = sentences.join(" ");
-
-            combinedText += `highlight:\n${highlightText}\ncontext:\n${context}\n---\n`;
-          });
-
-        const prompt = `You are a helpful assistant that explains English vocabulary.
-Please explain the highlighted words/phrases from the text below:
-- Provide simple definitions in English at this context
-- Give 2-3 example sentences for each highlighted word/phrase
-
-${combinedText}
-link: ${window.location.href.length > 75 ? "" : window.location.href}
-
-Please return the key points in a JSON format.
-The JSON format should be like this:
-[
-  {
-    "highlight": "highlight text",
-    "context": "context text",
-    "explanation": "explanation text",
-    "examples": ["example 1", "example 2"],
-    "pronunciation": "美 /ˌpɪktʃə'resk/",
-    "link": "link text"
-  }
-]
-        `;
+        // Get all highlights
+        const highlights = document.querySelectorAll("web-highlight,nrmark");
+        
+        // Generate the prompt
+        const prompt = generatePrompt(highlights, window.location.href);
 
         console.log(
           "%c Anki Helper [ prompt ]-37",
           "font-size:13px; background:pink; color:#bf2c9f;"
         );
+        console.log(prompt);
 
         // Copy to clipboard
         navigator.clipboard
