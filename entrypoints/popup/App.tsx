@@ -2,14 +2,21 @@ import { useState, useEffect } from "react";
 import { addNote, streamToOpenRouter } from "@/services";
 import { browser } from "wxt/browser";
 import "./App.css";
+import { defaultSettingsStorage } from "@/storage";
 
 function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [streamedText, setStreamedText] = useState<string>("");
+  const [deckName, setDeckName] = useState<string>("Default");
 
   useEffect(() => {
+    // Load settings
+    defaultSettingsStorage.getValue().then((settings) => {
+      setDeckName(settings.deckName);
+    });
+
     const getClipboardData = async () => {
       // 首先尝试使用 execCommand
       const textarea = document.createElement("textarea");
@@ -269,7 +276,7 @@ function App() {
                   disabled={isProcessing || streamedText !== ""}
                   className="submit-button"
                 >
-                  {isProcessing ? "处理中..." : "添加到 Anki"}
+                  {isProcessing ? "处理中..." : `添加到 ${deckName}`}
                 </button>
               </div>
             </div>
