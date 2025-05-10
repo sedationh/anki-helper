@@ -7,6 +7,8 @@ export interface AnkiNote {
   link: string;
 }
 
-export interface AnkiSettings {
+export interface AnkiHelperSettings {
   deckName: string;
+  openrouterApiKey: string;
+  openrouterModel: string;
 }

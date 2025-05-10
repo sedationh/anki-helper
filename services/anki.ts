@@ -1,11 +1,11 @@
-import { AnkiNote, AnkiSettings } from "@/types/anki";
-import { ankiSettings } from "@/storage";
+import { AnkiNote, AnkiHelperSettings } from "@/types/anki";
+import { defaultSettingsStorage } from "@/storage";
 
 const SERVER_URL = "http://localhost:8765";
 const API_VERSION = 6;
 
-async function getAnkiSettings(): Promise<AnkiSettings> {
-  return await ankiSettings.getValue();
+async function getAnkiSettings(): Promise<AnkiHelperSettings> {
+  return await defaultSettingsStorage.getValue();
 }
 
 export async function invokeAnkiConnect(action: string, params = {}) {

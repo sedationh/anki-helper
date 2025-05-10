@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ankiSettings, defaultSettings } from "@/storage";
-import type { AnkiSettings } from "@/types/anki";
+import { defaultSettingsStorage, defaultSettings } from "@/storage";
+import type { AnkiHelperSettings } from "@/types/anki";
 import "./Settings.css";
 
 export function Settings() {
-  const [settings, setSettings] = useState<AnkiSettings>(defaultSettings);
+  const [settings, setSettings] = useState<AnkiHelperSettings>(defaultSettings);
   const [status, setStatus] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -14,7 +14,7 @@ export function Settings() {
 
   async function loadSettings() {
     try {
-      const stored = await ankiSettings.getValue();
+      const stored = await defaultSettingsStorage.getValue();
       if (stored) {
         setSettings(stored);
       }
@@ -27,7 +27,7 @@ export function Settings() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await ankiSettings.setValue(settings);
+      await defaultSettingsStorage.setValue(settings);
       setStatus("设置已保存！");
       setError("");
       setTimeout(() => setStatus(""), 2000);
@@ -39,8 +39,9 @@ export function Settings() {
 
   return (
     <div className="settings-container">
-      <h1 className="settings-title">Anki 设置</h1>
+      <h1 className="settings-title">设置</h1>
       <form onSubmit={handleSubmit} className="settings-form">
+        <h2 className="settings-section-title">Anki 设置</h2>
         <div className="form-group">
           <label className="form-label">牌组名称</label>
           <input
@@ -52,6 +53,40 @@ export function Settings() {
             className="form-input"
           />
         </div>
+        
+        <h2 className="settings-section-title">OpenRouter 设置</h2>
+        <div className="form-group">
+          <label className="form-label">API 密钥</label>
+          <input
+            type="password"
+            value={settings.openrouterApiKey}
+            onChange={(e) =>
+              setSettings({ ...settings, openrouterApiKey: e.target.value })
+            }
+            className="form-input"
+            placeholder="sk-or-..."
+          />
+          <div className="form-hint">
+            从 <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter</a> 获取 API 密钥
+          </div>
+        </div>
+        
+        <div className="form-group">
+          <label className="form-label">模型</label>
+          <input
+            type="text"
+            value={settings.openrouterModel}
+            onChange={(e) =>
+              setSettings({ ...settings, openrouterModel: e.target.value })
+            }
+            className="form-input"
+            placeholder="google/gemini-2.0-flash-exp:free"
+          />
+          <div className="form-hint">
+            推荐使用支持多模态的模型，如 Gemini 系列
+          </div>
+        </div>
+        
         <button type="submit" className="submit-button">
           保存设置
         </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { addNote } from "../../services";
+import { addNote } from "@/services";
 import { browser } from "wxt/browser";
 import "./App.css";
 
