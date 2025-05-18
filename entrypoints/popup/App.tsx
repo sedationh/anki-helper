@@ -12,9 +12,22 @@ interface StatusState {
   message: string;
 }
 
+// URL 验证函数
+function isValidUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch (e) {
+    return false;
+  }
+}
+
 function App() {
   const [jsonInput, setJsonInput] = useState<string>("");
-  const [status, setStatus] = useState<StatusState>({ type: "idle", message: "" });
+  const [status, setStatus] = useState<StatusState>({
+    type: "idle",
+    message: "",
+  });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [streamedText, setStreamedText] = useState<string>("");
   const [deckName, setDeckName] = useState<string>(defaultSettings.deckName);
@@ -96,16 +109,21 @@ function App() {
           _link,
           pronunciation,
         } = item;
-        // 如果 link 为空，则用当前 active tab url 代替
-        let link = _link;
-        if (!link) {
+        // 验证并获取有效的 URL
+        let link = "";
+        if (_link && isValidUrl(_link)) {
+          link = _link;
+        } else {
           try {
             // Using browser.tabs API which is compatible with both Chrome and Firefox
             const [activeTab] = await browser.tabs.query({
               active: true,
               currentWindow: true,
             });
-            link = activeTab.url || "";
+            const tabUrl = activeTab.url || "";
+            if (isValidUrl(tabUrl)) {
+              link = tabUrl;
+            }
           } catch (error) {
             console.error("Failed to get active tab URL:", error);
             link = "";
@@ -138,8 +156,12 @@ function App() {
         }
       }
 
-      const statusType = failCount > 0 ? (successCount > 0 ? "info" : "error") : "success";
-      updateStatus(`添加完成：成功 ${successCount} 张，失败 ${failCount} 张`, statusType);
+      const statusType =
+        failCount > 0 ? (successCount > 0 ? "info" : "error") : "success";
+      updateStatus(
+        `添加完成：成功 ${successCount} 张，失败 ${failCount} 张`,
+        statusType
+      );
       if (successCount > 0) {
         setJsonInput("");
       }
@@ -181,7 +203,10 @@ function App() {
         });
 
       if (!data || !data.success) {
-        updateStatus(data?.error || "获取高亮文本失败，请确认页面已加载完成", "error");
+        updateStatus(
+          data?.error || "获取高亮文本失败，请确认页面已加载完成",
+          "error"
+        );
         setIsProcessing(false);
         return;
       }
@@ -276,8 +301,10 @@ function App() {
                   disabled={isProcessing}
                   className="ai-button"
                 >
-                  {isProcessing && status.type === "loading" && status.message === "AI生成中..." 
-                    ? "AI生成中..." 
+                  {isProcessing &&
+                  status.type === "loading" &&
+                  status.message === "AI生成中..."
+                    ? "AI生成中..."
                     : "从高亮文本生成"}
                 </button>
 
@@ -286,8 +313,10 @@ function App() {
                   disabled={isProcessing || streamedText !== ""}
                   className="submit-button"
                 >
-                  {isProcessing && status.type === "loading" && status.message === "添加中..." 
-                    ? "处理中..." 
+                  {isProcessing &&
+                  status.type === "loading" &&
+                  status.message === "添加中..."
+                    ? "处理中..."
                     : `添加到 ${deckName}`}
                 </button>
               </div>
