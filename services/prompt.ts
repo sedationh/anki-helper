@@ -17,7 +17,7 @@ export function generatePrompt(
     const highlightText = highlight.textContent?.trim() || "";
 
     // Find the container that includes the highlight
-    const container = highlight.closest("p, div, h1, h2, h3, h4, h5, h6, pre, body");
+    const container = highlight.closest("p, div, h1, h2, h3, h4, h5, h6, pre, td, body");
     if (!container) return;
 
     // Get the full context and split into sentences
@@ -42,7 +42,7 @@ Please explain the highlighted words/phrases from the text below:
 - If the context is not complete or wrong, fix it. if the context is to long, adjust it to a reasonable length
 
 ${combinedText}
-link: ${currentUrl.length > 75 ? "" : currentUrl}
+link: ${currentUrl.length > 150 ? "" : currentUrl}
 
 Please return the key points in a JSON format.
 The JSON format should be like this:
