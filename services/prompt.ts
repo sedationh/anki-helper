@@ -48,12 +48,15 @@ Please return the key points in a JSON format.
 The JSON format should be like this:
 [
   {
-    "highlight": "highlight text",
-    "context": "context text",
-    "explanation": "explanation text",
-    "examples": ["example 1", "example 2"],
-    "pronunciation": "美 /ˌpɪktʃə'resk/",
-    "link": "link text"
+    "highlight": "treat",
+    "context": "we will treat some of the vocabulary and very useful phrases in the dialogue.",
+    "explanation": "In this context, treat means to deal with or discuss something. It suggests that a topic will be handled or presented.",
+    "examples": [
+      "The next chapter will treat the complex history of the region.",
+      "The lecturer decided to treat the subject of quantum physics in a simplified manner.",
+      "This section of the report will treat the financial implications of the new policy."
+    ],
+    "pronunciation": "美 /triːt/"
   }
 ]`;
 }

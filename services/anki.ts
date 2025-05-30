@@ -38,7 +38,7 @@ export async function addNote(note: AnkiNote) {
       答案: `${note.pronunciation}<br>${note.explanation}<br>${note.examples
         .map((example) => `- ${example}`)
         .join("<br>")}`,
-      相关知识: `<a href="${note.link}">${note.link}</a>`,
+      相关知识: note.link ? `<a href="${note.link}">${note.link}</a>` : "",
     },
     options: {
       allowDuplicate: false,

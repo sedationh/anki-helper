@@ -4,7 +4,7 @@ export interface AnkiNote {
   explanation: string;
   examples: string[];
   pronunciation: string;
-  link: string;
+  link?: string;
 }
 
 export interface AnkiHelperSettings {

@@ -135,7 +135,6 @@ function App() {
           !context ||
           !explanation ||
           !examples ||
-          !link ||
           !pronunciation
         ) {
           failCount++;
